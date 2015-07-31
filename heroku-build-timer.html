@@ -8,6 +8,11 @@
 
 <template name="main">
   <h1>Heroku build times</h1>
+  <button id='fetch-primary-app'>{{primaryApp}}</button>
+  <p>or</p>
+  <input id='secondary-app-name'/>
+  <button id='fetch-secondary-app'>Fetch</button>
+  <h2>{{currentApp}}</h2>
   {{#each data}}
     {{> build}}
   {{/each}}

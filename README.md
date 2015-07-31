@@ -6,7 +6,9 @@ You'll need to add in a settings.json file with two keys for this to work. Somet
 ```
 {
   "herokuToken": [SOME TOKEN HERE],
-  "primaryApp": [SOME HEROKU APP NAME HERE]
+  "public": {
+    "primaryApp": [APP NAME HERE]
+  }
 }
 ```
 where the Heroku token is gained by running `heroku auth:token` and the app name is your Heroku app name.

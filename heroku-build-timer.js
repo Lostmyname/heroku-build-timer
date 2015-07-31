@@ -1,18 +1,40 @@
 if (Meteor.isClient) {
   Session.setDefault('data', []);
+  Session.setDefault('currentApp', "");
+
+  function fetchAndSetApp (appName) {
+    Meteor.call('getHerokuData', appName, function (error, result) {
+      if (!error) {
+        Session.set('currentApp', appName);
+        Session.set('data', result);
+      }
+    });
+  }
 
   Template.main.helpers({
     data: function () {
       return Session.get('data');
+    },
+    primaryApp: function () {
+      return Meteor.settings.public.primaryApp
+    },
+    currentApp: function () {
+      return Session.get('currentApp');
     }
   });
 
   Template.main.onCreated(function () {
-    Meteor.call('getHerokuData', function (error, result) {
-      if (!error) {
-        Session.set('data', result);
-      }
-    });
+    fetchAndSetApp(Meteor.settings.public.primaryApp);
+  });
+
+  Template.main.events({
+    'click #fetch-primary-app' : function (event, template) {
+      fetchAndSetApp(Meteor.settings.public.primaryApp);
+    },
+    'click #fetch-secondary-app' : function (event, template) {
+      var appName = template.find('#secondary-app-name').value;
+      fetchAndSetApp(appName);
+    }
   });
 
   Template.build.helpers({
@@ -30,8 +52,8 @@ if (Meteor.isClient) {
 
 if (Meteor.isServer) {
   Meteor.methods({
-    getHerokuData: function () {
-      response = HTTP.get('https://api.heroku.com/apps/' + Meteor.settings.primaryApp + '/builds',
+    getHerokuData: function (appName) {
+      response = HTTP.get('https://api.heroku.com/apps/' + appName + '/builds',
         {
           headers: {
             accept: 'application/vnd.heroku+json; version=3',
