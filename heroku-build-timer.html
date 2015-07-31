@@ -3,12 +3,16 @@
 </head>
 
 <body>
-  <h1>Welcome to Meteor!</h1>
-
-  {{> hello}}
+  {{> main}}
 </body>
 
-<template name="hello">
-  <button>Click Me</button>
-  <p>You've pressed the button {{counter}} times.</p>
+<template name="main">
+  <h1>Eagle build times</h1>
+  {{#each data}}
+    {{> build}}
+  {{/each}}
+</template>
+
+<template name="build">
+  <p>{{createdAtHumanized}} - {{status}} - {{buildTime}} - <a target="_blank" href='{{output_stream_url}}'>Logs</a></p>
 </template>

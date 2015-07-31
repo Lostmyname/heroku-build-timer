@@ -1,23 +1,47 @@
 if (Meteor.isClient) {
-  // counter starts at 0
-  Session.setDefault('counter', 0);
+  Session.setDefault('data', []);
 
-  Template.hello.helpers({
-    counter: function () {
-      return Session.get('counter');
+  Template.main.helpers({
+    data: function () {
+      return Session.get('data');
     }
   });
 
-  Template.hello.events({
-    'click button': function () {
-      // increment the counter when button is clicked
-      Session.set('counter', Session.get('counter') + 1);
+  Template.main.onCreated(function () {
+    Meteor.call('getHerokuData', function (error, result) {
+      if (!error) {
+        Session.set('data', result);
+      }
+    });
+  });
+
+  Template.build.helpers({
+    createdAtHumanized: function () {
+      return moment(this.created_at).format("dddd, MMMM Do YYYY, h:mm:ss a");
+    },
+    buildTime: function () {
+      var start = moment(this.created_at);
+      var end = moment(this.updated_at);
+      var duration = moment.duration(end.diff(start));
+      return duration.minutes() + "m " + duration.seconds() + "s";
     }
   });
 }
 
 if (Meteor.isServer) {
-  Meteor.startup(function () {
-    // code to run on server at startup
+  Meteor.methods({
+    getHerokuData: function () {
+      response = HTTP.get('https://api.heroku.com/apps/' + Meteor.settings.primaryApp + '/builds',
+        {
+          headers: {
+            accept: 'application/vnd.heroku+json; version=3',
+            range: 'started_at ..; order=desc,max=10;',
+            authorization: 'Bearer ' + Meteor.settings.herokuToken
+          }
+        }
+      );
+
+      return response.data;
+    }
   });
 }
