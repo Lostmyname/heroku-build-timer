@@ -16,13 +16,12 @@
       <div class='input-group'>
         <input type='text' class='form-control' id='secondary-app-name' placeholder='app name'>
         <div class='input-group-btn'>
-          <button class='btn btn-default' id='fetch-secondary-app' type='button'>Fetch app</button>
-          <button type='button' class='btn btn-default' id='fetch-primary-app'>Fetch {{primaryApp}}</button>
+          <button class='btn btn-default {{secondaryAppButtonClass}}' id='fetch-secondary-app' type='button'>Fetch app</button>
+          <button class='btn btn-default {{primaryAppButtonClass}}' id='fetch-primary-app'>Fetch {{primaryApp}}</button>
         </div>
       </div>
     </div>
   </div>
-  <h2 class='text-center'>{{currentApp}}</h2>
   <canvas class='center' id='build-time-chart' width='800' height='200'></canvas>
   <div class='col-xs-8 col-xs-offset-2'>
     <table class="table">
