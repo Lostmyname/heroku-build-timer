@@ -9,6 +9,15 @@ if (Meteor.isClient) {
         Session.set('data', result);
       }
     });
+    Meteor.call('getGraphData', appName, function (error, result) {
+      if (!error) {
+        var ctx = $("#build-time-chart").get(0).getContext("2d");
+        var chart = new Chart(ctx);
+        chart.Bar(result, {
+          scaleShowVerticalLines: false
+        });
+      }
+    });
   }
 
   Template.main.helpers({
@@ -53,17 +62,43 @@ if (Meteor.isClient) {
 if (Meteor.isServer) {
   Meteor.methods({
     getHerokuData: function (appName) {
-      response = HTTP.get('https://api.heroku.com/apps/' + appName + '/builds',
-        {
-          headers: {
-            accept: 'application/vnd.heroku+json; version=3',
-            range: 'started_at ..; order=desc,max=10;',
-            authorization: 'Bearer ' + Meteor.settings.herokuToken
-          }
-        }
-      );
+      var response = herokuBuildsAPI(appName, 10);
 
       return response.data;
+    },
+    getGraphData: function (appName) {
+      var response = herokuBuildsAPI(appName, 50);
+
+      var graphData = response.data.map(function (obj) {
+        return (moment(obj.updated_at).diff(moment(obj.created_at)) / 60000)
+      });
+      graphData.reverse();
+      var data = {
+        labels: Array(50).join(".").split("."),
+        datasets: [
+          {
+            fillColor: "rgba(0,0,0,1)",
+            strokeColor: "rgba(0,0,0,1)",
+            data: graphData
+          }
+        ]
+      };
+
+      return data;
     }
   });
+
+  function herokuBuildsAPI (appName, numberOfResults) {
+    var response = HTTP.get('https://api.heroku.com/apps/' + appName + '/builds',
+      {
+        headers: {
+          accept: 'application/vnd.heroku+json; version=3',
+          range: 'started_at ..; order=desc,max=' + numberOfResults + ';',
+          authorization: 'Bearer ' + Meteor.settings.herokuToken
+        }
+      }
+    );
+
+    return response;
+  }
 }
