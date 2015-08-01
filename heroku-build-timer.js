@@ -2,6 +2,8 @@ if (Meteor.isClient) {
   Session.setDefault('data', []);
   Session.setDefault('currentApp', "");
 
+  var chart;
+
   function fetchAndSetApp (appName) {
     Meteor.call('getHerokuData', appName, function (error, result) {
       if (!error) {
@@ -11,8 +13,10 @@ if (Meteor.isClient) {
     });
     Meteor.call('getGraphData', appName, function (error, result) {
       if (!error) {
-        var ctx = $("#build-time-chart").get(0).getContext("2d");
-        var chart = new Chart(ctx);
+        if (!chart) {
+          var ctx = $("#build-time-chart").get(0).getContext("2d");
+          chart = new Chart(ctx);
+        }
         chart.Bar(result, {
           scaleShowVerticalLines: false
         });
