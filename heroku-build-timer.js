@@ -31,8 +31,11 @@ if (Meteor.isClient) {
     primaryApp: function () {
       return Meteor.settings.public.primaryApp
     },
-    currentApp: function () {
-      return Session.get('currentApp');
+    primaryAppButtonClass: function () {
+      return Meteor.settings.public.primaryApp == Session.get('currentApp') ? "active" : ""
+    },
+    secondaryAppButtonClass: function () {
+      return Meteor.settings.public.primaryApp == Session.get('currentApp') ? "" : "active"
     }
   });
 

@@ -1,24 +1,42 @@
 <head>
   <title>heroku-build-timer</title>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
 </head>
 
 <body>
-  {{> main}}
+  <div class='container'>
+    {{> main}}
+  </div>
 </body>
 
-<template name="main">
-  <h1>Heroku build times</h1>
-  <button id='fetch-primary-app'>{{primaryApp}}</button>
-  <p>or</p>
-  <input id='secondary-app-name'/>
-  <button id='fetch-secondary-app'>Fetch</button>
-  <h2>{{currentApp}}</h2>
-  <canvas id="build-time-chart" width="800" height="400"></canvas>
-  {{#each data}}
-    {{> build}}
-  {{/each}}
+<template name='main'>
+  <h1 class='text-center'>Heroku build times</h1>
+  <div class='row'>
+    <div class='col-xs-4 col-xs-offset-4'>
+      <div class='input-group'>
+        <input type='text' class='form-control' id='secondary-app-name' placeholder='app name'>
+        <div class='input-group-btn'>
+          <button class='btn btn-default {{secondaryAppButtonClass}}' id='fetch-secondary-app' type='button'>Fetch app</button>
+          <button class='btn btn-default {{primaryAppButtonClass}}' id='fetch-primary-app'>Fetch {{primaryApp}}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <canvas class='center' id='build-time-chart' width='800' height='200'></canvas>
+  <div class='col-xs-8 col-xs-offset-2'>
+    <table class="table">
+      {{#each data}}
+        {{> build}}
+      {{/each}}
+    </table>
+  </div>
 </template>
 
-<template name="build">
-  <p>{{createdAtHumanized}} - {{status}} - {{buildTime}} - <a target="_blank" href='{{output_stream_url}}'>Logs</a></p>
+<template name='build'>
+  <tr>
+    <td>{{createdAtHumanized}}</td>
+    <td>{{status}}</td>
+    <td>{{buildTime}}</td>
+    <td><a target='_blank' href='{{output_stream_url}}'>Logs</a></td>
+  </tr>
 </template>
