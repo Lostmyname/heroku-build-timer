@@ -74,7 +74,8 @@ if (Meteor.isClient) {
       return duration.minutes() + "m " + duration.seconds() + "s";
     },
     slugSize: function () {
-      return parseInt(Session.get('slugs')[this.slug.id] / (1024 * 1024));
+      var slugs = Session.get('slugs');
+      return slugs[this.slug.id] ? parseInt(slugs[this.slug.id] / (1024 * 1024)) : "-";
     }
   });
 }
