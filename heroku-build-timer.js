@@ -1,6 +1,8 @@
+Slugs = new Meteor.Collection("slugs");
+
 if (Meteor.isClient) {
+  Meteor.subscribe("slugs");
   Session.setDefault('builds', []);
-  Session.setDefault('slugs', {});
   Session.setDefault('currentApp', "");
 
   var chart;
@@ -11,12 +13,8 @@ if (Meteor.isClient) {
         Session.set('currentApp', appName);
         Session.set('builds', result);
         result.forEach(function (build) {
-          if (build.slug.id) {
-            Meteor.call('getHerokuSlugData', appName, build.slug.id, function (error, result) {
-              var tempSlugs = Session.get('slugs');
-              tempSlugs[result.id] = result.size;
-              Session.set('slugs', tempSlugs);
-            });
+          if (build.slug.id && !Slugs.findOne({ appName: appName, slugId: build.slug.id })) {
+            Meteor.call('getHerokuSlugData', appName, build.slug.id);
           }
         });
       }
@@ -74,13 +72,17 @@ if (Meteor.isClient) {
       return duration.minutes() + "m " + duration.seconds() + "s";
     },
     slugSize: function () {
-      var slugs = Session.get('slugs');
-      return slugs[this.slug.id] ? parseInt(slugs[this.slug.id] / (1024 * 1024)) : "-";
+      var slug = Slugs.findOne({ appName: Session.get('currentApp'), slugId: this.slug.id });
+      return slug ? parseInt(slug.slugSize / (1024 * 1024)) : "-";
     }
   });
 }
 
 if (Meteor.isServer) {
+  Meteor.publish("slugs", function () {
+    return Slugs.find();
+  });
+
   Meteor.methods({
     getHerokuBuildData: function (appName) {
       var response = herokuBuildsAPI(appName, 10);
@@ -89,8 +91,17 @@ if (Meteor.isServer) {
     },
     getHerokuSlugData: function (appName, slugId) {
       var response = herokuSlugAPI(appName, slugId);
-
-      return response.data;
+      Slugs.upsert(
+        {
+          appName: appName,
+          slugId: slugId
+        },
+        {
+          appName: appName,
+          slugId: slugId,
+          slugSize: response.data.size
+        }
+      )
     },
     getGraphData: function (appName) {
       var response = herokuBuildsAPI(appName, 50);
