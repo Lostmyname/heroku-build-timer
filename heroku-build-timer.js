@@ -1,26 +1,15 @@
-Slugs = new Meteor.Collection("slugs");
+Slugs = new Meteor.Collection('slugs');
+Builds = new Meteor.Collection('builds');
 
 if (Meteor.isClient) {
-  Meteor.subscribe("slugs");
-  Session.setDefault('builds', []);
-  Session.setDefault('currentApp', "");
+  Meteor.subscribe('slugs');
+  Meteor.subscribe('builds');
+  Session.setDefault('currentApp', Meteor.settings.public.primaryApp);
 
   var chart;
 
   function fetchAndSetApp (appName) {
-    Meteor.call('getHerokuBuildData', appName, function (error, result) {
-      if (!error) {
-        Session.set('currentApp', appName);
-        Session.set('builds', result);
-        result.forEach(function (build) {
-          if (build.status == "succeeded" &&
-            build.slug.id &&
-            !Slugs.findOne({ appName: appName, slugId: build.slug.id })) {
-            Meteor.call('getHerokuSlugData', appName, build.slug.id);
-          }
-        });
-      }
-    });
+    Meteor.call('getHerokuBuildData', appName);
     Meteor.call('getGraphData', appName, function (error, result) {
       if (!error) {
         if (!chart) {
@@ -36,7 +25,7 @@ if (Meteor.isClient) {
 
   Template.main.helpers({
     builds: function () {
-      return Session.get('builds');
+      return Builds.findOne({ appName: Session.get('currentApp') }).builds.slice(0, 10);
     },
     primaryApp: function () {
       return Meteor.settings.public.primaryApp
@@ -55,10 +44,12 @@ if (Meteor.isClient) {
 
   Template.main.events({
     'click #fetch-primary-app' : function (event, template) {
+      Session.set('currentApp', Meteor.settings.public.primaryApp);
       fetchAndSetApp(Meteor.settings.public.primaryApp);
     },
     'click #fetch-secondary-app' : function (event, template) {
       var appName = template.find('#secondary-app-name').value;
+      Session.set('currentApp', appName);
       fetchAndSetApp(appName);
     }
   });
@@ -84,12 +75,30 @@ if (Meteor.isServer) {
   Meteor.publish("slugs", function () {
     return Slugs.find();
   });
+  Meteor.publish("builds", function () {
+    return Builds.find();
+  });
 
   Meteor.methods({
     getHerokuBuildData: function (appName) {
-      var response = herokuBuildsAPI(appName, 10);
+      var response = herokuBuildsAPI(appName, 50);
+      Builds.upsert(
+        {
+          appName: appName
+        },
+        {
+          appName: appName,
+          builds: response.data
+        }
+      )
 
-      return response.data;
+      response.data.forEach(function (build) {
+        if (build.status == 'succeeded' &&
+          build.slug.id &&
+          !Slugs.findOne({ appName: appName, slugId: build.slug.id })) {
+          Meteor.call('getHerokuSlugData', appName, build.slug.id);
+        }
+      });
     },
     getHerokuSlugData: function (appName, slugId) {
       var response = herokuSlugAPI(appName, slugId);
@@ -113,11 +122,11 @@ if (Meteor.isServer) {
       });
       graphData.reverse();
       var data = {
-        labels: Array(50).join(".").split("."),
+        labels: Array(50).join('.').split('.'),
         datasets: [
           {
-            fillColor: "rgba(0,0,0,1)",
-            strokeColor: "rgba(0,0,0,1)",
+            fillColor: 'rgba(0,0,0,1)',
+            strokeColor: 'rgba(0,0,0,1)',
             data: graphData
           }
         ]
