@@ -13,7 +13,9 @@ if (Meteor.isClient) {
         Session.set('currentApp', appName);
         Session.set('builds', result);
         result.forEach(function (build) {
-          if (build.slug.id && !Slugs.findOne({ appName: appName, slugId: build.slug.id })) {
+          if (build.status == "succeeded" &&
+            build.slug.id &&
+            !Slugs.findOne({ appName: appName, slugId: build.slug.id })) {
             Meteor.call('getHerokuSlugData', appName, build.slug.id);
           }
         });
