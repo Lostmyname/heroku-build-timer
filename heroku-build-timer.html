@@ -25,7 +25,14 @@
   <canvas class='center' id='build-time-chart' width='800' height='200'></canvas>
   <div class='col-xs-8 col-xs-offset-2'>
     <table class="table">
-      {{#each data}}
+      <tr>
+        <th>Build started at</th>
+        <th>Status</th>
+        <th>Build time</th>
+        <th>Slug size</th>
+        <th></th>
+      </tr>
+      {{#each builds}}
         {{> build}}
       {{/each}}
     </table>
@@ -37,6 +44,7 @@
     <td>{{createdAtHumanized}}</td>
     <td>{{status}}</td>
     <td>{{buildTime}}</td>
+    <td>{{slugSize}} MB</td>
     <td><a target='_blank' href='{{output_stream_url}}'>Logs</a></td>
   </tr>
 </template>
