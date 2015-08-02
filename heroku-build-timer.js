@@ -25,7 +25,10 @@ if (Meteor.isClient) {
 
   Template.main.helpers({
     builds: function () {
-      return Builds.findOne({ appName: Session.get('currentApp') }).builds.slice(0, 10);
+      var buildsContainer = Builds.findOne({ appName: Session.get('currentApp') });
+      if (buildsContainer) {
+        return buildsContainer.builds.slice(0, 10);
+      }
     },
     primaryApp: function () {
       return Meteor.settings.public.primaryApp
