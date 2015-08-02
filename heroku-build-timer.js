@@ -115,9 +115,9 @@ if (Meteor.isServer) {
       )
     },
     getGraphData: function (appName) {
-      var response = herokuBuildsAPI(appName, 50);
+      var builds = Builds.findOne({ appName: appName }).builds
 
-      var graphData = response.data.map(function (obj) {
+      var graphData = builds.map(function (obj) {
         return (moment(obj.updated_at).diff(moment(obj.created_at)) / 60000)
       });
       graphData.reverse();
